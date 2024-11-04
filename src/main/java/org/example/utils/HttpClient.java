@@ -1,7 +1,12 @@
 package org.example.utils;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -81,6 +86,32 @@ public class HttpClient {
         } catch (IOException e) {
             logger.log(Level.WARNING, "Failed to connect to " + urlRoot, e);
             return false;
+        }
+    }
+
+    // POSTリクエストで，引数のGsonを送信しJSONを受け取るメソッドを追加，返り値もGson
+    public JsonObject post(String path, JsonObject json) {
+        try {
+            URL url = new URI(urlRoot.toString() + path).toURL();
+            logger.info("POST request to: " + url);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+            connection.setDoOutput(true);
+            connection.getOutputStream().write(json.toString().getBytes(StandardCharsets.UTF_8));
+
+            int responseCode = connection.getResponseCode();
+            logger.info("Response code: " + responseCode);
+            if (responseCode == 200) {
+                return (JsonObject) JsonParser.parseReader(new InputStreamReader(connection.getInputStream()));
+            } else {
+                return null;
+            }
+        } catch (IOException e) {
+            logger.log(Level.WARNING, "Failed to connect to " + urlRoot, e);
+            return null;
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
         }
     }
 }

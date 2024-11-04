@@ -1,5 +1,7 @@
 package org.example;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.example.utils.HttpClient;
 import org.example.utils.PropertiesLoader;
 
@@ -30,5 +32,20 @@ public class Main {
         } else {
             logger.severe("Failed to connect to " + domain + ":" + port);
         }
+
+        String postUrl = "release/newVersions";
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("groupId", "org.jgrapht");
+        jsonObject.addProperty("artifactId", "jgrapht-core");
+        jsonObject.addProperty("version", "1.5.0");
+        JsonArray addedValues = new JsonArray();
+        addedValues.add("CVE");
+        addedValues.add("FRESHNESS");
+        addedValues.add("POPULARITY_1_YEAR");
+        jsonObject.add("addedValues", addedValues);
+
+        JsonObject response = client.post(postUrl, jsonObject);
+        logger.info(response.toString());
     }
 }
