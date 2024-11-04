@@ -1,17 +1,52 @@
 package org.example;
 
-//TIP コードを<b>実行</b>するには、<shortcut actionId="Run"/> を押すか
-// ガターの <icon src="AllIcons.Actions.Execute"/> アイコンをクリックします。
-public class Main {
-    public static void main(String[] args) {
-        //TIP ハイライトされたテキストにキャレットがある状態で <shortcut actionId="ShowIntentionActions"/> を押すと
-        // IntelliJ IDEA によるその修正案を確認できます。
-        System.out.printf("Hello and welcome!");
+import org.example.utils.PropertiesLoader;
 
-        for (int i = 1; i <= 5; i++) {
-            //TIP <shortcut actionId="Debug"/> を押してコードのデバッグを開始します。<icon src="AllIcons.Debugger.Db_set_breakpoint"/> ブレークポイントを 1 つ設定しましたが、
-            // <shortcut actionId="ToggleLineBreakpoint"/> を押すといつでも他のブレークポイントを追加できます。
-            System.out.println("i = " + i);
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+public class Main {
+    private static final Logger logger = Logger.getLogger(Main.class.getName());
+    private static final Path configFilePath = Paths.get("src/main/resources/config.properties");
+
+    public static void main(String[] args) {
+        String domain;
+        String port;
+        try {
+            PropertiesLoader configLoader = new PropertiesLoader(configFilePath);
+            domain = configLoader.getProperty("server.domain");
+            port = configLoader.getProperty("server.port");
+        } catch (IllegalArgumentException e) {
+            logger.log(Level.SEVERE, "Error: ", e);
+            return;
+        }
+
+        try {
+            URL urlDocs = new URI("http://" + domain + ":" + port + "/swagger-ui/index.html").toURL();
+            HttpURLConnection connection = (HttpURLConnection) urlDocs.openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode == 200) {
+                logger.info("Success");
+            }
+            else {
+                logger.severe("Error: " + responseCode);
+            }
+        }
+        catch (URISyntaxException e) {
+            logger.log(Level.SEVERE, "Error: URL Syntax Exception.", e);
+        }
+        catch (IOException e) {
+            logger.log(Level.SEVERE, "Error: Unable to connect to the URL.", e);
         }
     }
 }
