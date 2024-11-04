@@ -43,7 +43,7 @@ public class PropertiesLoader {
      * @return the value associated with the specified key
      * @throws IllegalArgumentException if the specified key does not exist in the properties
      */
-    public String getProperty(String key) {
+    public String getProperty(String key) throws IllegalArgumentException {
         String value = this.properties.getProperty(key);
         if (value == null) {
             throw new IllegalArgumentException("Required property '" + key + "' is missing.");
