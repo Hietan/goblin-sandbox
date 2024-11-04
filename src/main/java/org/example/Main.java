@@ -5,6 +5,8 @@ import com.google.gson.JsonObject;
 import org.example.utils.HttpClient;
 import org.example.utils.PropertiesLoader;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.logging.Level;
@@ -14,7 +16,7 @@ public class Main {
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     private static final Path configFilePath = Paths.get("src/main/resources/config.properties");
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws URISyntaxException {
         String domain;
         int port;
         try {
@@ -33,7 +35,7 @@ public class Main {
             logger.severe("Failed to connect to " + domain + ":" + port);
         }
 
-        String postUrl = "release/newVersions";
+        URI postUri = new URI("/release/newVersions");
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("groupId", "org.jgrapht");
@@ -45,7 +47,7 @@ public class Main {
         addedValues.add("POPULARITY_1_YEAR");
         jsonObject.add("addedValues", addedValues);
 
-        JsonObject response = client.post(postUrl, jsonObject);
+        JsonObject response = client.post(postUri, jsonObject);
         logger.info(response.toString());
     }
 }

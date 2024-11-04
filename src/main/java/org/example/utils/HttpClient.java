@@ -23,7 +23,7 @@ public class HttpClient {
     private final String domain;
     private final Integer port;
     private final boolean useHttps;
-    private final URL urlRoot;
+    private final URI uriRoot;
 
     /**
      * Constructs an `HttpClient` with the specified domain, port, and HTTPS usage.
@@ -36,7 +36,7 @@ public class HttpClient {
         this.domain = domain;
         this.port = port;
         this.useHttps = useHttps;
-        this.urlRoot = this.buildPathRoot();
+        this.uriRoot = this.buildUriRoot();
     }
 
     /**
@@ -55,16 +55,16 @@ public class HttpClient {
      *
      * @return the root URL for the server
      */
-    private URL buildPathRoot() {
-        URL url = null;
+    private URI buildUriRoot() {
+        URI uri = null;
         try {
             String protocol = this.useHttps ? "https" : "http";
-            url =  new URI(protocol + "://" + this.domain + ":" + port + "/").toURL();
-        } catch (URISyntaxException | MalformedURLException e) {
+            uri =  new URI(protocol + "://" + this.domain + ":" + port + "/");
+        } catch (URISyntaxException e) {
             logger.log(Level.SEVERE, "Invalid URL format.", e);
             exit(1);
         }
-        return url;
+        return uri;
     }
 
     /**
@@ -76,7 +76,7 @@ public class HttpClient {
      */
     public boolean isConnected() {
         try {
-            HttpURLConnection connection = (HttpURLConnection) urlRoot.openConnection();
+            HttpURLConnection connection = (HttpURLConnection) uriRoot.toURL().openConnection();
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(timeoutMs);
             connection.setReadTimeout(timeoutMs);
@@ -84,15 +84,15 @@ public class HttpClient {
             int responseCode = connection.getResponseCode();
             return 200 <= responseCode && responseCode < 500;
         } catch (IOException e) {
-            logger.log(Level.WARNING, "Failed to connect to " + urlRoot, e);
+            logger.log(Level.WARNING, "Failed to connect to " + uriRoot, e);
             return false;
         }
     }
 
     // POSTリクエストで，引数のGsonを送信しJSONを受け取るメソッドを追加，返り値もGson
-    public JsonObject post(String path, JsonObject json) {
+    public JsonObject post(URI uri, JsonObject json) {
         try {
-            URL url = new URI(urlRoot.toString() + path).toURL();
+            URL url = uriRoot.resolve(uri).toURL();
             logger.info("POST request to: " + url);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
@@ -108,10 +108,8 @@ public class HttpClient {
                 return null;
             }
         } catch (IOException e) {
-            logger.log(Level.WARNING, "Failed to connect to " + urlRoot, e);
+            logger.log(Level.WARNING, "Failed to connect to " + uriRoot, e);
             return null;
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
         }
     }
 }
