@@ -14,7 +14,7 @@ import static java.lang.System.exit;
 
 /**
  * The `HttpClient` class is responsible for establishing an HTTP connection to a specified domain and port,
- * and verifying connectivity by sending a GET request to the root path.
+ * verifying connectivity by sending a GET request, and making HTTP POST requests with JSON data.
  */
 public class HttpClient {
     private static final Logger logger = Logger.getLogger(HttpClient.class.getName());
@@ -50,10 +50,10 @@ public class HttpClient {
     }
 
     /**
-     * Builds the root URL using the domain, port, and protocol.
-     * The URL is constructed based on the specified protocol (HTTP or HTTPS).
+     * Builds the root URI using the domain, port, and protocol.
+     * The URI is constructed based on the specified protocol (HTTP or HTTPS).
      *
-     * @return the root URL for the server
+     * @return the root URI for the server
      */
     private URI buildUriRoot() {
         URI uri = null;
@@ -89,7 +89,14 @@ public class HttpClient {
         }
     }
 
-    // POSTリクエストで，引数のGsonを送信しJSONを受け取るメソッドを追加，返り値もGson
+    /**
+     * Sends a POST request with JSON data to the specified URI.
+     * If the response code is 200, the JSON response is returned.
+     *
+     * @param uri  the URI to which the POST request is sent, relative to the root URI
+     * @param json the JSON object to be sent as the POST request body
+     * @return the JSON response from the server if the response code is 200, null otherwise
+     */
     public JsonObject post(URI uri, JsonObject json) {
         try {
             URL url = uriRoot.resolve(uri).toURL();
